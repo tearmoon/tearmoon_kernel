@@ -1835,40 +1835,40 @@ static int fts_ts_resume(struct device *dev)
 *****************************************************************************/
 static int fts_ts_probe(struct spi_device *spi)
 {
-    int ret = 0;
-    struct fts_ts_data *ts_data = NULL;
+	int ret = 0;
+	struct fts_ts_data *ts_data = NULL;
 
-    FTS_INFO("Touch Screen(SPI BUS) driver prboe...");
-    spi->mode = SPI_MODE_1;
-    spi->bits_per_word = 8;
-    if (spi->max_speed_hz > FTS_SPI_CLK_MAX)
-        spi->max_speed_hz = FTS_SPI_CLK_MAX;
+	FTS_INFO("Touch Screen(SPI BUS) driver prboe...");
+	spi->mode = SPI_MODE_1;
+	spi->bits_per_word = 8;
+	if (spi->max_speed_hz > FTS_SPI_CLK_MAX)
+		spi->max_speed_hz = FTS_SPI_CLK_MAX;
 
-    ret = spi_setup(spi);
-    if (ret) {
-        FTS_ERROR("spi setup fail");
-        return ret;
-    }
+	ret = spi_setup(spi);
+	if (ret) {
+		FTS_ERROR("spi setup fail");
+		return ret;
+	}
 
-    /* malloc memory for global struct variable */
-    ts_data = (struct fts_ts_data *)kzalloc(sizeof(*ts_data), GFP_KERNEL);
-    if (!ts_data) {
-        FTS_ERROR("allocate memory for fts_data fail");
-        return -ENOMEM;
-    }
+	/* malloc memory for global struct variable */
+	ts_data = (struct fts_ts_data *)kzalloc(sizeof(*ts_data), GFP_KERNEL);
+	if (!ts_data) {
+		FTS_ERROR("allocate memory for fts_data fail");
+		return -ENOMEM;
+	}
 
-    fts_data = ts_data;
-    ts_data->spi = spi;
-    ts_data->dev = &spi->dev;
-    ts_data->log_level = 1;
-    spi_set_drvdata(spi, ts_data);
+	fts_data = ts_data;
+	ts_data->spi = spi;
+	ts_data->dev = &spi->dev;
+	ts_data->log_level = 1;
+	spi_set_drvdata(spi, ts_data);
 
-    ret = fts_ts_probe_entry(spi, ts_data);;
-    if (ret) {
-        FTS_ERROR("Touch Screen(SPI BUS) driver probe fail");
-        kfree_safe(ts_data);
-        return ret;
-    }
+	ret = fts_ts_probe_entry(spi, ts_data);
+	if (ret) {
+		FTS_ERROR("Touch Screen(SPI BUS) driver probe fail");
+		kfree_safe(ts_data);
+		return ret;
+	}
 
 #ifdef CONFIG_PM
 	ts_data->dev_pm_suspend = false;
