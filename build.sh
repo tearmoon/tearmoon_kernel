@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (C) 2020 Edwiin Kusuma Jaya (MWG_Ryzen)
+# Copyright (C) 2020 Edwiin Kusuma Jaya (ryuzenn)
 #
 # Simple Local Kernel Build Script
 #
@@ -76,9 +76,6 @@ echo -e "\nCompleted in $((SECONDS / 60)) minute(s) and $((SECONDS % 60)) second
 # clone AnyKernel3
 if ! [ -d "AnyKernel3" ]; then
     git clone https://github.com/kutemeikito/AnyKernel3 -b KSU
-else
-    echo "${bold}Direktori AnyKernel3 Sudah Ada, Tidak Perlu di Clone${normal}"
-fi
 
 # ENV
 ZIP_DIR=$KERNEL_DIR/AnyKernel3
