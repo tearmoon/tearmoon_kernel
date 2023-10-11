@@ -51,6 +51,9 @@ fi
 if ! [ -d "$KERNEL_DIR"/KernelSU ]; then
 	curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
 	git apply KernelSU-hook.patch
+else
+		echo -e "Setup KernelSU failed, stopped build now..."
+		exit 1
 fi
 
 if [[ $1 = "-r" || $1 = "--regen" ]]; then
