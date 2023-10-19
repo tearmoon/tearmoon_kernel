@@ -56,9 +56,9 @@ else
 fi
 
 UTS_VERSION="#$VERSION"
-CONFIG_FLAGS="RastaMod69"
-if [ -n "$SMP" ] ; then CONFIG_FLAGS="$CONFIG_FLAGS SMP"; fi
-if [ -n "$PREEMPT" ] ; then CONFIG_FLAGS="$CONFIG_FLAGS PREEMPT"; fi
+CONFIG_FLAGS="MIA LUNA TEARMOON"
+if [ -n "$SMP" ] ; then CONFIG_FLAGS="$CONFIG_FLAGS"; fi
+if [ -n "$PREEMPT" ] ; then CONFIG_FLAGS="$CONFIG_FLAGS"; fi
 UTS_VERSION="$UTS_VERSION $CONFIG_FLAGS $TIMESTAMP"
 
 # Truncate to maximum length

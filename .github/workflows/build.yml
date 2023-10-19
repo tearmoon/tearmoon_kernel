@@ -1,0 +1,115 @@
+name: Compile TearMoon Kernel
+
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - '**.md'
+    branches:
+      - main
+
+jobs:
+  build:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { type: "WithoutKSU", id: "1" }
+          - { type: "WithKSU", id: "1" }
+
+    steps:
+      - name: checkout repos
+        uses: actions/checkout@v4.1.0
+        with:
+          fetch-depth: 0
+
+      - name: configuring git environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3
+
+      - name: building TearMoon Kernel
+        run: |
+          if [[ "${{ matrix.job.type}}" == "WithoutKSU" ]]; then
+            export KSU=false
+            chmod 777 ./build.sh
+            ./build.sh
+          elif [[ "${{ matrix.job.type}}" == "WithKSU" ]]; then
+            export KSU=true
+            chmod 777 ./build.sh
+            ./build.sh
+          else
+            exit 1
+            echo "failed ${{ matrix.job.type}}"
+          fi
+
+      - name: get info
+        run: |
+          echo "$(git rev-parse --short HEAD)" > head.txt
+          echo "$(git log --oneline -n 5 --no-decorate | sed 's/^[0-9a-f]* //' | sed 's/^/— /')" > commit.txt
+
+      - name: upload tearmoon-ksu-kernel
+        if: ${{ matrix.job.type=='WithKSU' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: tearmoon-ksu-kernel
+          path: ./*-KSU*.zip
+
+      - name: upload tearmoon-std-kernel
+        if: ${{ matrix.job.type=='WithoutKSU' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: tearmoon-std-kernel
+          path: ./*-STD*.zip
+
+      - name: upload txt
+        if: ${{  success() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: get_info
+          path: ./*.txt
+
+  upload:
+    name: telegram upload release
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: get_info
+          path: ./
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: tearmoon-ksu-kernel
+          path: ./
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: tearmoon-std-kernel
+          path: ./
+
+      - name: upload to telegram
+        if: ${{  success() }}
+        env:
+          CHAT_ID: "-1002034198189"
+          MESSAGE_THREAD_ID: "17"
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: |
+          if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
+            wget --no-check-certificate -qO- "https://raw.githubusercontent.com/tearmoon/tearmoon_kernel/main/.github/taamarinbot.py" > $GITHUB_WORKSPACE/taamarinbot.py
+            wget --no-check-certificate -qO- "https://raw.githubusercontent.com/tearmoon/tearmoon_kernel/main/Makefile" > $GITHUB_WORKSPACE/Makefile
+            export KSUV=$(wget --no-check-certificate -qO- "https://api.github.com/repos/tiann/KernelSU/releases" | grep "tag_name" | grep -o "[0-9.]*" | head -1)
+            export HEADS=$(cat $GITHUB_WORKSPACE/head.txt)
+            export VERSION="TearMoon@${HEADS}"
+            export SUBVER=$(cat $GITHUB_WORKSPACE/Makefile | grep -o 'SUBLEVEL = [0-9.]*' | grep -o '[0-9.]*')
+            export COMMIT=$(cat $GITHUB_WORKSPACE/commit.txt)
+
+            FILE=$(find $GITHUB_WORKSPACE -name "*.zip")
+            pip3 install telethon==1.31.1
+            python3 $GITHUB_WORKSPACE/taamarinbot.py $FILE
+          fi
