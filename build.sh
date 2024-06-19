@@ -20,6 +20,8 @@ if [ "${KSU}" = "true" ]; then
 else
   ZIPNAME="TearMoon-STD@${HEADS}-$(date +"%Y%m%d").zip"
   sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"-TearMoon@${HEADS}\"|g" "arch/arm64/configs/vendor/ginkgo-perf_defconfig"
+
+  sed -i "s|CONFIG_KSU=.*|# CONFIG_KSU is not set |g" "arch/arm64/configs/vendor/ginkgo-perf_defconfig"
 fi
 TC_DIR="$HOME/toolchain/linux-x86"
 CLANG_DIR="$HOME/toolchain/linux-x86/clang-r498229b"
